@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16 # Adjust based on your app's requirement
+          node-version: "20.x" # Adjust based on your app's requirement
 
       # Step 3: Install dependencies for backend and frontend
       - name: Install Dependencies
