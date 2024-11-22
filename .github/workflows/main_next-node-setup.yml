@@ -1,62 +1,46 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - next-node-setup
+name: Deploy Node.js and Next.js App to Azure
 
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - main # Replace with the branch you want to trigger deployment
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js version
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: 16 # Adjust based on your app's requirement
 
-      - name: npm install, build, and test
+      # Step 3: Install dependencies for backend and frontend
+      - name: Install Dependencies
         run: |
+          cd backend
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          cd ../frontend
+          npm install
+          cd ..
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+      # Step 4: Build Next.js frontend
+      - name: Build Next.js Frontend
+        run: |
+          cd frontend
+          npm run build
+          cd ..
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+      # Step 5: Deploy to Azure Web App
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v2
         with:
-          name: node-app
-          path: release.zip
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'next-node-setup'
-          slot-name: 'Production'
-          package: .
+          app-name: "next-node-setup"
+          slot-name: "Production"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_67D5F9753CB140D38C04C0547805A556 }}
+          package: .
