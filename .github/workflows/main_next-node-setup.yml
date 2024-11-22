@@ -1,46 +1,60 @@
-name: Deploy Node.js and Next.js App to Azure
+name: Deploy Node.js and Next.js to Azure
 
 on:
   push:
     branches:
-      - main # Replace with the branch you want to trigger deployment
+      - main # Replace with your deployment branch
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout Repository
+      # Step 1: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       # Step 2: Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "20.x" # Adjust based on your app's requirement
+          node-version: 16
+          cache: "npm"
 
-      # Step 3: Install dependencies for backend and frontend
-      - name: Install Dependencies
-        run: |
-          cd backend
-          npm install
-          cd ../frontend
-          npm install
-          cd ..
-
-      # Step 4: Build Next.js frontend
-      - name: Build Next.js Frontend
+      # Step 3: Install and Build Frontend
+      - name: Build Frontend
         run: |
           cd frontend
+          npm ci
           npm run build
           cd ..
 
-      # Step 5: Deploy to Azure Web App
+      # Step 4: Install Backend Dependencies
+      - name: Install Backend
+        run: |
+          cd backend
+          npm ci
+          cd ..
+
+      # Step 5: Create Deployment Package
+      - name: Prepare Deployment Package
+        run: |
+          mkdir deploy
+          cp -r backend deploy/backend
+          cp -r frontend/.next deploy/frontend/.next
+          cp -r frontend/public deploy/frontend/public
+          cp frontend/package.json deploy/frontend/package.json
+          cp backend/package.json deploy/backend/package.json
+          cp server.js deploy/server.js
+          cd deploy
+          zip -r ../deployment.zip *
+          cd ..
+
+      # Step 6: Deploy to Azure
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
           app-name: "next-node-setup"
           slot-name: "Production"
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_67D5F9753CB140D38C04C0547805A556 }}
           package: .
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_67D5F9753CB140D38C04C0547805A556 }}
