@@ -56,7 +56,7 @@ jobs:
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
-          app-name: "next-node-setup"
+          app-name: "node-next-test"
           slot-name: "Production"
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3CBC6C3868084B7797BA334A211355D5 }}
