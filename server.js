@@ -1,7 +1,7 @@
 const express = require("express");
 const next = require("next");
 
-const dev = process.env.NODE_ENV !== "production";
+const dev = false;
 const app = next({ dev, dir: "./frontend" }); // Adjust path if your Next.js app is in a different folder
 const handle = app.getRequestHandler();
 
