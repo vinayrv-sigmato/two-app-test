@@ -6,7 +6,9 @@ export default function Home() {
 
   useEffect(() => {
     // Call the backend API (Express server)
-    fetch("http://localhost:3000/api/hello")
+    fetch(
+      "https://node-next-test-dua6eqaacxa6gdbu.centralindia-01.azurewebsites.net/api/hello"
+    )
       .then((response) => response.json())
       .then((data) => setMessage(data.message))
       .catch((error) => console.error("Error fetching data:", error));
