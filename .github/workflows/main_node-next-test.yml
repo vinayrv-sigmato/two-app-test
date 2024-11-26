@@ -36,23 +36,7 @@ jobs:
           npm ci
           cd ..
 
-      # Step 5: Create Deployment Package
-      - name: Prepare Deployment Package
-        run: |
-          mkdir -p deploy/frontend/.next
-          mkdir -p deploy/frontend/public
-          mkdir -p deploy/backend
-          cp -r backend/* deploy/backend/
-          cp -r frontend/.next/* deploy/frontend/.next/
-          cp -r frontend/public/* deploy/frontend/public/
-          cp frontend/package.json deploy/frontend/package.json
-          cp backend/package.json deploy/backend/package.json
-          cp server.js deploy/server.js
-          cd deploy
-          zip -r ../deployment.zip *
-          cd ..
-
-      # Step 6: Deploy to Azure
+      # Step 5: Deploy to Azure
       - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
