@@ -1,62 +1,62 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - node-next-test
+name: Deploy Node.js and Next.js to Azure
 
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - main # Replace with your deployment branch
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Step 1: Checkout repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js version
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: "20.x"
+          cache: "npm"
 
-      - name: npm install, build, and test
+      # Step 3: Install and Build Frontend
+      - name: Build Frontend
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          cd frontend
+          npm ci
+          npm run build
+          cd ..
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+      # Step 4: Install Backend Dependencies
+      - name: Install Backend
+        run: |
+          cd backend
+          npm ci
+          cd ..
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
+      # Step 5: Create Deployment Package
+      - name: Prepare Deployment Package
+        run: |
+          mkdir -p deploy/frontend/.next
+          mkdir -p deploy/frontend/public
+          mkdir -p deploy/backend
+          cp -r backend/* deploy/backend/
+          cp -r frontend/.next/* deploy/frontend/.next/
+          cp -r frontend/public/* deploy/frontend/public/
+          cp frontend/package.json deploy/frontend/package.json
+          cp backend/package.json deploy/backend/package.json
+          cp server.js deploy/server.js
+          cd deploy
+          zip -r ../deployment.zip *
+          cd ..
+
+      # Step 6: Deploy to Azure
+      - name: Deploy to Azure
+        uses: azure/webapps-deploy@v2
         with:
-          name: node-app
-          path: release.zip
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-      
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'node-next-test'
-          slot-name: 'Production'
+          app-name: "next-node-setup"
+          slot-name: "Production"
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3CBC6C3868084B7797BA334A211355D5 }}
